@@ -1,0 +1,5 @@
+matplotlib
+torchnet
+scikit-learn
+git+https://github.com/probtorch/probtorch.git
+# numbers

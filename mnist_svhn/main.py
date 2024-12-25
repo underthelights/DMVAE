@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.add_argument('--wseed', type=int, default=0, metavar='N',
                         help='random seed for weight')
 
-    parser.add_argument('--ckpt_path', type=str, default='../weights/mnist_svhn_cont',
+    parser.add_argument('--ckpt_path', type=str, default='/data/khshim/DMVAE/weights/mnist_svhn',
                         help='save and load path for ckpt')
 
     args = parser.parse_args()
@@ -105,7 +105,8 @@ BETA2 = (1., args.beta2, 1.)
 NUM_PIXELS = int(28 * 28)
 TEMP = 0.66
 NUM_SAMPLES = 1
-data_path = '../../data/mnist-svhn'
+# data_path = '../../data/mnist-svhn'
+data_path = '/data/khshim/DMVAE/data'
 
 train_mnist_svhn, test_mnist_svhn = getPairedDataset(data_path, 100, cuda=CUDA)
 kwargs = {'num_workers': num_workers, 'pin_memory': True} if CUDA else {}
@@ -154,11 +155,11 @@ mnist_net, svhn_net = MNIST_Classifier(), SVHN_Classifier()
 if CUDA:
     mnist_net = mnist_net.cuda()
     svhn_net = svhn_net.cuda()
-    mnist_net.load_state_dict(torch.load('../../data/mnist-svhn/mnist_model.pt'))
-    svhn_net.load_state_dict(torch.load('../../data/mnist-svhn/svhn_model.pt'))
+    mnist_net.load_state_dict(torch.load('/data/khshim/DMVAE/data/mnist_model.pt', weights_only=True))
+    svhn_net.load_state_dict(torch.load('/data/khshim/DMVAE/data/svhn_model.pt', weights_only=True))
 else:
-    mnist_net.load_state_dict(torch.load('../../data/mnist-svhn/mnist_model.pt', map_location='cpu'))
-    svhn_net.load_state_dict(torch.load('../../data/mnist-svhn/svhn_model.pt', map_location='cpu'))
+    mnist_net.load_state_dict(torch.load('/data/khshim/DMVAE/weights/mnist_svhn/mnist_model.pt', map_location='cpu'))
+    svhn_net.load_state_dict(torch.load('/data/khshim/DMVAE/weights/mnist_svhn/svhn_model.pt', map_location='cpu'))
 mnist_net.eval()
 svhn_net.eval()
 
@@ -510,10 +511,10 @@ def save_ckpt(e):
 
 if args.ckpt_epochs > 0:
     if CUDA:
-        encA.load_state_dict(torch.load('%s/%s-encA_epoch%s.rar' % (args.ckpt_path, MODEL_NAME, args.ckpt_epochs)))
-        decA.load_state_dict(torch.load('%s/%s-decA_epoch%s.rar' % (args.ckpt_path, MODEL_NAME, args.ckpt_epochs)))
-        encB.load_state_dict(torch.load('%s/%s-encB_epoch%s.rar' % (args.ckpt_path, MODEL_NAME, args.ckpt_epochs)))
-        decB.load_state_dict(torch.load('%s/%s-decB_epoch%s.rar' % (args.ckpt_path, MODEL_NAME, args.ckpt_epochs)))
+        encA.load_state_dict(torch.load('%s/%s-encA_epoch%s.rar' % (args.ckpt_path, MODEL_NAME, args.ckpt_epochs), weights_only=True))
+        decA.load_state_dict(torch.load('%s/%s-decA_epoch%s.rar' % (args.ckpt_path, MODEL_NAME, args.ckpt_epochs), weights_only=True))
+        encB.load_state_dict(torch.load('%s/%s-encB_epoch%s.rar' % (args.ckpt_path, MODEL_NAME, args.ckpt_epochs), weights_only=True))
+        decB.load_state_dict(torch.load('%s/%s-decB_epoch%s.rar' % (args.ckpt_path, MODEL_NAME, args.ckpt_epochs), weights_only=True))
     else:
         encA.load_state_dict(torch.load('%s/%s-encA_epoch%s.rar' % (args.ckpt_path, MODEL_NAME, args.ckpt_epochs),
                                         map_location=torch.device('cpu')))
@@ -571,7 +572,7 @@ def shared_latent(data_loader, encA, n_samples):
     ######################## shared digit id ########################
     sharedA =  q['sharedA'].dist.loc
     sharedB =  q['sharedB'].dist.loc
-    shared = torch.cat([sharedA, sharedB, sharedPoE], dim=1).detach().numpy().squeeze(0)
+    shared = torch.cat([sharedA, sharedB, sharedPoE], dim=1).detach().cpu().numpy().squeeze(0)
 
     # total tsne
     tsne = TSNE(n_components=2, random_state=0)
@@ -591,14 +592,14 @@ def shared_latent(data_loader, encA, n_samples):
 
     ######################## all images of B ########################
     tsne = TSNE(n_components=2, random_state=0)
-    emb = tsne.fit_transform(q['privateB'].dist.loc.detach().numpy().squeeze(0))
+    emb = tsne.fit_transform(q['privateB'].dist.loc.detach().cpu().numpy().squeeze(0))
 
     fig, ax = plt.subplots(**{'figsize': (4, 3)})
 
     ax.scatter(emb[:,0], emb[:,1])
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
     for x0, y0, img in zip(emb[:,0], emb[:,1], fixed_XB):
-        img = img.detach().numpy().transpose((1,2,0))
+        img = img.detach().cpu().numpy().transpose((1,2,0))
         imagebox = OffsetImage(img, zoom=0.2)
         imagebox.image.axes = ax
         ab = AnnotationBbox(imagebox, (x0, y0), frameon=False)

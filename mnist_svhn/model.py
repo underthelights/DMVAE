@@ -1,9 +1,9 @@
+import sys
+import os
 import torch
 import torch.nn as nn
 
-import sys
-
-sys.path.append('../')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import probtorch
 from probtorch.util import expand_inputs
 from util import kaiming_init

@@ -34,10 +34,10 @@ def getPairedDataset(path, batch_size, shuffle=True, cuda=True):
             and os.path.exists(path + '/test-ms-svhn-idx.pt')):
         raise RuntimeError('Generate transformed indices with the script in bin')
     # get transformed indices
-    t_mnist = torch.load(path + '/train-ms-mnist-idx.pt')
-    t_svhn = torch.load(path + '/train-ms-svhn-idx.pt')
-    s_mnist = torch.load(path + '/test-ms-mnist-idx.pt')
-    s_svhn = torch.load(path + '/test-ms-svhn-idx.pt')
+    t_mnist = torch.load(path + '/train-ms-mnist-idx.pt', weights_only=True)
+    t_svhn = torch.load(path + '/train-ms-svhn-idx.pt', weights_only=True)
+    s_mnist = torch.load(path + '/test-ms-mnist-idx.pt', weights_only=True)
+    s_svhn = torch.load(path + '/test-ms-svhn-idx.pt', weights_only=True)
 
     # load base datasets
 
